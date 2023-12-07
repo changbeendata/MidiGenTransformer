@@ -132,7 +132,7 @@ import torch
 from torch.utils.data import Dataset
 
 class CustomDataset(Dataset):
-    def __init__(self, data, sequence_length=30):
+    def __init__(self, data, sequence_length=150):
         """
         data: a list of PyTorch tensors comprising the dataset
         sequence_length: length of input sequence and target sequence (should be same! .. or not)
@@ -174,8 +174,8 @@ from torch.utils.data import DataLoader
 
 # batch_size is a hyper-parameter! can be changed
 train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+val_loader = DataLoader(val_dataset, batch_size=16, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=1, shuffle=True)
 
 """###2.3. Model Class"""
 
@@ -227,7 +227,7 @@ d_model_options = [64, 128, 256]
 nhead_options = [2, 4, 8]
 num_encoder_layers_options = [1, 2, 3]
 dim_feedforward_options = [16, 32, 64]
-max_seq_len = [30]
+max_seq_len = [150]
 
 param_grid = itertools.product(
     d_model_options, nhead_options, num_encoder_layers_options, dim_feedforward_options, max_seq_len
@@ -289,13 +289,16 @@ for params in param_grid:
 
 print("Best Parameters:", best_params)
 
-"""###2.4. Training and Evaluation"""
+"""###2.4. Training and Evaluation
+
+###2.4.1. MSELoss
+"""
 
 d_model = 256
 nhead = 2
 num_encoder_layers = 1
 dim_feedforward = 16
-max_seq_len = 30
+max_seq_len = 150
 
 
 """
@@ -313,7 +316,7 @@ model = TransformerModel(d_model, nhead, num_encoder_layers, dim_feedforward, ma
 criterion = torch.nn.MSELoss() # performance measure is hyper..
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001) # hyper..
 
-num_epochs = 30
+num_epochs = 100
 
 from d2l import torch as d2l
 
@@ -351,6 +354,8 @@ for epoch in range(num_epochs):
     # print(f'Epoch {epoch+1}/{num_epochs} - Validation Loss: {avg_val_loss}')
 
     animator.add(epoch + 1, [avg_train_loss, avg_val_loss])
+
+"""###2.4.3. Validation Check"""
 
 for input_sequence, target_sequence in val_loader:
     print("input: ", input_sequence)
